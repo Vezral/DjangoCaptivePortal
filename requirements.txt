@@ -1,0 +1,6 @@
+Django==2.0.4
+django-cleanup==2.1.0
+pyotp==2.2.6
+pypng==0.0.18
+PyQRCode==1.2.1
+pytz==2018.4
