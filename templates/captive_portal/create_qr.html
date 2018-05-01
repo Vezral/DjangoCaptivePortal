@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CreateQR</title>
+</head>
+<body>
+    <div style="text-align: center">
+        {% if request.session.token %}
+        <img src="{{ request.session.token }}">
+        {% endif %}
+        <form action="{% url 'captive_portal:create_qr' %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="CreateQR">
+        </form>
+    </div>
+</body>
+</html>
