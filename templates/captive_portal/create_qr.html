@@ -6,11 +6,23 @@
 </head>
 <body>
     <div style="text-align: center">
-        {% if request.session.token %}
-        <img src="{{ request.session.token }}">
+        {% if qr and token and expiration_time %}
+        <img src="{{ qr }}"><br>
+        <label>WiFi login token: {{ token }}</label><br>
+        <label>Expiration time: {{ expiration_time|date:'j/n/Y h:i A' }}</label><br>
+        <label>Maximum connected device: {{ request.session.max_connected }}</label>
         {% endif %}
         <form action="{% url 'captive_portal:create_qr' %}" method="post">
             {% csrf_token %}
+            <select name="max_connected">
+                {% for i in "x"|rjust:"10" %}
+                    {% if forloop.counter0 == request.session.max_connected|add:"0" %}
+                    <option value="{{ forloop.counter0 }}" selected>{{ forloop.counter0 }}{% if forloop.counter0 == 0 %} (Unlimited){% endif %}</option>
+                    {% else %}
+                    <option value="{{ forloop.counter0 }}">{{ forloop.counter0 }}{% if forloop.counter0 == 0 %} (Unlimited){% endif %}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
             <input type="submit" value="CreateQR">
         </form>
     </div>

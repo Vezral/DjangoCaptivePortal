@@ -18,13 +18,20 @@ from django.urls import include, path, re_path
 from django.conf import settings
 from django.views.generic.base import RedirectView
 from django.conf.urls.static import static
+from captive_portal.helper_functions.captive_portal import captive_portal_init
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', include('captive_portal.urls')),
-    re_path(r'^.*$', RedirectView.as_view(url='login/'), name='index'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    re_path(r'^.*$', RedirectView.as_view(url='/login/'), name='index'),
+]
+
+print(urlpatterns)
+
+captive_portal_init()

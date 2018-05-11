@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import WiFiUser
+from .models import WiFiQR
 
-admin.site.register(WiFiUser)
+admin.site.register(WiFiQR)
