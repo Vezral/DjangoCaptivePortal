@@ -23,9 +23,54 @@
     <favorites_list name="PythonCaptivePortal" />
   </component>
   <component name="FileEditorManager">
+<<<<<<< HEAD
     <leaf>
       <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/.gitignore">
+=======
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="urls.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/captive_portal/urls.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="331">
+              <caret line="23" column="59" selection-start-line="23" selection-start-column="59" selection-end-line="23" selection-end-column="59" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="urls.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PythonCaptivePortal/urls.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="203">
+              <caret line="17" column="32" lean-forward="true" selection-start-line="17" selection-start-column="32" selection-end-line="17" selection-end-column="32" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/captive_portal/views.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="752">
+              <caret line="55" column="36" selection-start-line="55" selection-start-column="36" selection-end-line="55" selection-end-column="36" />
+              <folding>
+                <element signature="e#0#45#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="settings.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PythonCaptivePortal/settings.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="240">
+              <caret line="27" column="20" selection-start-line="27" selection-start-column="20" selection-end-line="27" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="models.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/captive_portal/models.py">
+>>>>>>> 2fcfa786200b0fca7708b77dd8f600b413567e8e
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="335">
               <caret line="95" column="11" lean-forward="true" selection-start-line="95" selection-start-column="11" selection-end-line="95" selection-end-column="11" />
@@ -89,10 +134,17 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
+<<<<<<< HEAD
     <option name="x" value="746" />
     <option name="y" value="89" />
     <option name="width" value="1725" />
     <option name="height" value="968" />
+=======
+    <option name="x" value="61" />
+    <option name="y" value="22" />
+    <option name="width" value="1303" />
+    <option name="height" value="942" />
+>>>>>>> 2fcfa786200b0fca7708b77dd8f600b413567e8e
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -205,7 +257,11 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
+<<<<<<< HEAD
     <frame x="746" y="89" width="1725" height="968" extended-state="0" />
+=======
+    <frame x="56" y="52" width="1303" height="942" extended-state="0" />
+>>>>>>> 2fcfa786200b0fca7708b77dd8f600b413567e8e
     <layout>
       <window_info anchor="bottom" id="TODO" order="7" sideWeight="0.49969897" weight="0.32855436" />
       <window_info anchor="bottom" id="Event Log" order="11" sideWeight="0.50208455" side_tool="true" weight="0.32855436" />
@@ -475,8 +531,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
         <state relative-caret-position="335">
           <caret line="95" column="11" lean-forward="true" selection-start-line="95" selection-start-column="11" selection-end-line="95" selection-end-column="11" />
+=======
+        <state relative-caret-position="331">
+          <caret line="23" column="59" selection-start-line="23" selection-start-column="59" selection-end-line="23" selection-end-column="59" />
+>>>>>>> 2fcfa786200b0fca7708b77dd8f600b413567e8e
         </state>
       </provider>
     </entry>
