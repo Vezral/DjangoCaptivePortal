@@ -3,12 +3,13 @@ import netifaces as netif
 import ipaddress
 from captive_portal.models import RemoveWiFiQRScheduler
 from captive_portal.tasks import remove_remote_user, remove_all_wifi_qr
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, timedelta
 from pytz import timezone
 from django.conf import settings
 
 # These variables are used as settings
 PORT = 8000  # the port in which the captive portal web server listens
+HTTPS_PORT = 8001  # the port in which the captive portal web server listens
 IFACE = "wlan0"  # the interface that captive portal protects
 wifi_interface = netif.ifaddresses(IFACE)[netif.AF_INET][0]
 IP_ADDRESS = wifi_interface['addr']  # the ip address of the captive portal (it can be the IP of IFACE)
@@ -25,7 +26,8 @@ def add_remote_user(remote_IP, expiration_time):
 
 
 def captive_portal_init():
-    date_to_delete_wifi_qr = datetime.combine(date.today()+timedelta(days=1), time())
+    kl_timezone = timezone(settings.TIME_ZONE)
+    date_to_delete_wifi_qr = datetime.now(kl_timezone).replace(hour=0, minute=0, second=0, microsecond=0)+timedelta(days=1)
     wifi_qr_scheduler_is_exist = RemoveWiFiQRScheduler.objects.filter(pk=1).exists()
     if wifi_qr_scheduler_is_exist:
         wifi_qr_scheduler = RemoveWiFiQRScheduler.objects.get(pk=1)
@@ -55,7 +57,7 @@ def captive_portal_init():
     print(".. Allow UDP DNS")
     subprocess.call(["iptables", "-A", "FORWARD", "-i", IFACE, "-p", "udp", "--dport", "53", "-j", "ACCEPT"])
     print(".. Allow traffic to captive portal")
-    subprocess.call(["iptables", "-A", "FORWARD", "-i", IFACE, "-p", "tcp", "--dport", str(PORT),"-d", IP_ADDRESS, "-j", "ACCEPT"])
+    subprocess.call(["iptables", "-A", "FORWARD", "-i", IFACE, "-p", "tcp", "--dport", str(PORT), "-d", IP_ADDRESS, "-j", "ACCEPT"])
     print(".. Block all other traffic")
     subprocess.call(["iptables", "-A", "FORWARD", "-i", IFACE, "-j", "REJECT"])
     print("Redirecting HTTP traffic to captive portal")

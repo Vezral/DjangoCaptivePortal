@@ -4,6 +4,9 @@ from django.core.files import File
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from captive_portal.helper_functions import captive_portal
+from pytz import timezone
+from django.conf import settings
+from .tasks import remove_wifi_qr
 from .models import WiFiQR
 import pyqrcode
 import pyotp
@@ -58,12 +61,15 @@ def generate_otp():
 def create_wifi_user(token, qr_code, max_connected):
     wifi_user_instance = WiFiQR()
     wifi_user_instance.token = token
-    wifi_user_instance.expiration_time = datetime.now() + timedelta(minutes=5)
+    kl_timezone = timezone(settings.TIME_ZONE)
+    expiration_time = datetime.now(kl_timezone) + timedelta(minutes=5)
+    wifi_user_instance.expiration_time = expiration_time
     qr_image_name = '{}.png'.format(token)
     qr_code.png(qr_image_name, scale=5)
     wifi_user_instance.qr_code = File(open(qr_image_name, 'rb'))
     wifi_user_instance.max_connected = max_connected
     wifi_user_instance.save()
+    remove_wifi_qr.apply_async(args=[token], eta=expiration_time)
     os.remove(open(qr_image_name).name)
     return wifi_user_instance
 
@@ -79,6 +85,7 @@ def create_qr(request):
     wifi_user = create_wifi_user(token, qr_code, max_connected)
     context = {
         'qr': wifi_user.qr_code.url,
+        'web_url': captive_portal.IP_ADDRESS,
         'token': wifi_user.token,
         'expiration_time': wifi_user.expiration_time,
     }

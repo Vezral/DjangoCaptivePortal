@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from celery import task
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone
 from django.conf import settings
 from captive_portal.helper_functions import captive_portal
@@ -16,9 +16,18 @@ def remove_remote_user(remote_IP):
 
 
 @task
+def remove_wifi_qr(token):
+    is_valid = WiFiQR.objects.filter(token=token).exists()
+    if is_valid:
+        wifi_qr = WiFiQR.objects.get(token=token)
+        wifi_qr.delete()
+        print(".. Deleted token: {}".format(token))
+
+
+@task
 def remove_all_wifi_qr():
     kl_timezone = timezone(settings.TIME_ZONE)
-    date_to_delete_wifi_qr = datetime.now(kl_timezone).replace(hour=0, minute=0, second=0, microsecond=0)
+    date_to_delete_wifi_qr = datetime.now(kl_timezone).replace(hour=0, minute=0, second=0, microsecond=0)+timedelta(days=1)
     for wifi_qr in WiFiQR.objects.all():
         wifi_qr.delete()
     remove_all_wifi_qr.apply_async(eta=date_to_delete_wifi_qr)
