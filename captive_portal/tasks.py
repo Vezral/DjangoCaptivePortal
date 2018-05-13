@@ -10,6 +10,15 @@ import os
 
 
 @task
+def add_remote_user(remote_IP, qr_id):
+    subprocess.call(["iptables","-t", "nat", "-I", "PREROUTING", "1", "-s", remote_IP, "-j", "ACCEPT"])
+    subprocess.call(["iptables", "-I", "FORWARD", "-s", remote_IP, "-i", captive_portal.IFACE, "-j", "ACCEPT"])
+    qr = WiFiQR.objects.get(pk=qr_id)
+    kl_timezone = timezone(settings.TIME_ZONE)
+    expiration_time = qr.expiration_time.astimezone(kl_timezone)
+    remove_remote_user.apply_async(args=[remote_IP], eta=expiration_time)
+
+@task
 def remove_remote_user(remote_IP):
     subprocess.call(["iptables", "-t", "nat", "-D", "PREROUTING", "-s", remote_IP, "-j", "ACCEPT"])
     subprocess.call(["iptables", "-D", "FORWARD", "-s", remote_IP, "-i", captive_portal.IFACE, "-j", "ACCEPT"])

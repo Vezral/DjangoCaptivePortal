@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from captive_portal.helper_functions import captive_portal
 from pytz import timezone
 from django.conf import settings
-from .tasks import remove_wifi_qr
+from .tasks import remove_wifi_qr, add_remote_user
 from .models import WiFiQR
 import pyqrcode
 import pyotp
@@ -36,14 +36,16 @@ def authenticate(request):
 
     is_valid = WiFiQR.objects.filter(token=token).exists()
     if is_valid:
-        user = WiFiQR.objects.get(token=token)
-        if user.max_connected == 0 or user.current_connected < user.max_connected:
-            user.current_connected += 1
-            user_ip = get_client_ip(request)
-            captive_portal.add_remote_user(user_ip[0], user.expiration_time)
-            user.save()
+        qr = WiFiQR.objects.get(token=token)
+        if qr.max_connected == 0 or qr.current_connected < qr.max_connected:
+            qr.current_connected += 1
+            user_ip = get_client_ip(request)[0]
+            qr.save()
             if 'error' in request.session:
                 del request.session['error']
+            kl_timezone = timezone(settings.TIME_ZONE)
+            delay = datetime.now(kl_timezone)+timedelta(seconds=2)
+            add_remote_user.apply_async(args=[user_ip, qr.id], eta=delay)
             return redirect('captive_portal:success')
         else:
             request.session['error'] = 'Maximum number of connected device reached'

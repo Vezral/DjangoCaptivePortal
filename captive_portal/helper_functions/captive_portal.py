@@ -17,14 +17,6 @@ NETMASK = wifi_interface['netmask']  # the netmask of the captive portal
 NET_ID_WITH_PREFIX = str(ipaddress.IPv4Interface(IP_ADDRESS + '/' + NETMASK).network)
 
 
-def add_remote_user(remote_IP, expiration_time):
-    subprocess.call(["iptables","-t", "nat", "-I", "PREROUTING", "1", "-s", remote_IP, "-j", "ACCEPT"])
-    subprocess.call(["iptables", "-I", "FORWARD", "-s", remote_IP, "-i", IFACE, "-j", "ACCEPT"])
-    kl_timezone = timezone(settings.TIME_ZONE)
-    expiration_time = expiration_time.astimezone(kl_timezone)
-    remove_remote_user.apply_async(args=[remote_IP], eta=expiration_time)
-
-
 def captive_portal_init():
     kl_timezone = timezone(settings.TIME_ZONE)
     date_to_delete_wifi_qr = datetime.now(kl_timezone).replace(hour=0, minute=0, second=0, microsecond=0)+timedelta(days=1)
