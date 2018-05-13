@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'captive_portal.apps.CaptivePortalConfig',
-    'sslserver',
 ]
 
 MIDDLEWARE = [
