@@ -10,6 +10,7 @@
         <img src="{{ qr }}"><br>
         <label>WiFi login token: {{ token }}</label><br>
         <label>Expiration time: {{ expiration_time|date:'j/n/Y h:i A' }}</label><br>
+        <label>Login page: {{ web_url }}</label><br>
         <label>Maximum connected device: {{ request.session.max_connected }}</label>
         {% endif %}
         <form action="{% url 'captive_portal:create_qr' %}" method="post">

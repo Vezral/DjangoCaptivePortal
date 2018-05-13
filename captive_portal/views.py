@@ -85,7 +85,7 @@ def create_qr(request):
     wifi_user = create_wifi_user(token, qr_code, max_connected)
     context = {
         'qr': wifi_user.qr_code.url,
-        'web_url': captive_portal.IP_ADDRESS,
+        'web_url': captive_portal.IP_ADDRESS+":"+str(captive_portal.PORT)+"/login/",
         'token': wifi_user.token,
         'expiration_time': wifi_user.expiration_time,
     }
