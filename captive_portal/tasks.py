@@ -21,7 +21,7 @@ def remove_wifi_qr(token):
     is_valid = WiFiQR.objects.filter(token=token).exists()
     if is_valid:
         wifi_qr = WiFiQR.objects.get(token=token)
-        os.remove(wifi_qr.qr_code.path())
+        os.remove(wifi_qr.qr_code.path)
         wifi_qr.delete()
         print(".. Deleted token: {}".format(token))
 
