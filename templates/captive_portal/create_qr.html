@@ -11,10 +11,30 @@
         <label>WiFi login token: {{ token }}</label><br>
         <label>Expiration time: {{ expiration_time|date:'j/n/Y h:i A' }}</label><br>
         <label>Login page: {{ web_url }}</label><br>
-        <label>Maximum connected device: {{ request.session.max_connected }}</label>
+        <label>Maximum connected device: {{ request.session.max_connected }}{% if request.session.max_connected == 0 %} (Unlimited){% endif %}</label>
         {% endif %}
         <form action="{% url 'captive_portal:create_qr' %}" method="post">
             {% csrf_token %}
+            <label>Valid Period: </label>
+            <select name="hour">
+                {% for i in "x"|rjust:"24" %}
+                    {% if forloop.counter0 == request.session.hour|add:"0" %}
+                    <option value="{{ forloop.counter0 }}" selected>{{ forloop.counter0|stringformat:"02d" }}</option>
+                    {% else %}
+                    <option value="{{ forloop.counter0 }}">{{ forloop.counter0|stringformat:"02d" }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>:
+            <select name="minute">
+                {% for i in "x"|rjust:"59" %}
+                    {% if forloop.counter == request.session.minute|add:"0" %}
+                    <option value="{{ forloop.counter }}" selected>{{ forloop.counter|stringformat:"02d" }}</option>
+                    {% else %}
+                    <option value="{{ forloop.counter }}">{{ forloop.counter|stringformat:"02d" }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select><br>
+            <label>Maximum connected devices: </label>
             <select name="max_connected">
                 {% for i in "x"|rjust:"10" %}
                     {% if forloop.counter0 == request.session.max_connected|add:"0" %}
@@ -23,7 +43,7 @@
                     <option value="{{ forloop.counter0 }}">{{ forloop.counter0 }}{% if forloop.counter0 == 0 %} (Unlimited){% endif %}</option>
                     {% endif %}
                 {% endfor %}
-            </select>
+            </select><br>
             <input type="submit" value="CreateQR">
         </form>
     </div>

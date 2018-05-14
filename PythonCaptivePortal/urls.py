@@ -32,6 +32,4 @@ urlpatterns += [
     re_path(r'^.*$', RedirectView.as_view(url='/login/'), name='index'),
 ]
 
-print(urlpatterns)
-
 captive_portal_init()

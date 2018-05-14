@@ -8,7 +8,7 @@ def upload_directory(instance, filename):
     return path
 
 
-class WiFiQR(models.Model):
+class WiFiToken(models.Model):
     token = models.CharField(max_length=100, unique=True)
     expiration_time = models.DateTimeField()
     qr_code = models.FileField(upload_to=upload_directory)
@@ -19,5 +19,10 @@ class WiFiQR(models.Model):
         return '{} {}'.format(self.token, self.expiration_time)
 
 
-class RemoveWiFiQRScheduler(models.Model):
+class WifiTokenAssociatedIPAddress(models.Model):
+    token = models.ForeignKey(WiFiToken, on_delete=models.CASCADE)
+    ip_address = models.CharField(max_length=100, unique=True)
+
+
+class RemoveWiFiTokenScheduler(models.Model):
     scheduled_time = models.DateTimeField()

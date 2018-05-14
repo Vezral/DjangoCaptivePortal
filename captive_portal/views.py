@@ -7,7 +7,7 @@ from captive_portal.helper_functions import captive_portal
 from pytz import timezone
 from django.conf import settings
 from .tasks import remove_wifi_qr, add_remote_user
-from .models import WiFiQR
+from .models import WiFiToken, WifiTokenAssociatedIPAddress
 import pyqrcode
 import pyotp
 import os
@@ -34,19 +34,27 @@ def authenticate(request):
     else:
         token = request.POST['token']
 
-    is_valid = WiFiQR.objects.filter(token=token).exists()
-    if is_valid:
-        qr = WiFiQR.objects.get(token=token)
-        if qr.max_connected == 0 or qr.current_connected < qr.max_connected:
-            qr.current_connected += 1
+    # check for token validity
+    if WiFiToken.objects.filter(token=token).exists():
+        wifi_token = WiFiToken.objects.get(token=token)
+        # check for connected counter
+        if wifi_token.max_connected == 0 or wifi_token.current_connected < wifi_token.max_connected:
             user_ip = get_client_ip(request)[0]
-            qr.save()
-            if 'error' in request.session:
-                del request.session['error']
-            kl_timezone = timezone(settings.TIME_ZONE)
-            delay = datetime.now(kl_timezone)+timedelta(seconds=2)
-            add_remote_user.apply_async(args=[user_ip, qr.id], eta=delay)
-            return redirect('captive_portal:success')
+            # check if IP already authenticated
+            if wifi_token.wifitokenassociatedipaddress_set.filter(ip_address=user_ip).exists() is False:
+                wifi_token.current_connected += 1
+                associated_ip = WifiTokenAssociatedIPAddress(token=wifi_token, ip_address=user_ip)
+                wifi_token.save()
+                associated_ip.save()
+                if 'error' in request.session:
+                    del request.session['error']
+                kl_timezone = timezone(settings.TIME_ZONE)
+                delay = datetime.now(kl_timezone)+timedelta(seconds=2)
+                add_remote_user.apply_async(args=[user_ip, wifi_token.id], eta=delay)
+                return redirect('captive_portal:success')
+            else:
+                request.session['error'] = 'You are already authenticated!'
+                return redirect('captive_portal:login')
         else:
             request.session['error'] = 'Maximum number of connected device reached'
             return redirect('captive_portal:login')
@@ -60,11 +68,11 @@ def generate_otp():
     return time_otp.now()
 
 
-def create_wifi_user(token, qr_code, max_connected):
-    wifi_user_instance = WiFiQR()
+def create_wifi_user(token, qr_code, max_connected, hour, minute):
+    wifi_user_instance = WiFiToken()
     wifi_user_instance.token = token
     kl_timezone = timezone(settings.TIME_ZONE)
-    expiration_time = datetime.now(kl_timezone) + timedelta(minutes=5)
+    expiration_time = datetime.now(kl_timezone) + timedelta(hours=hour, minutes=minute)
     wifi_user_instance.expiration_time = expiration_time
     qr_image_name = '{}.png'.format(token)
     qr_code.png(qr_image_name, scale=5)
@@ -79,12 +87,14 @@ def create_wifi_user(token, qr_code, max_connected):
 def create_qr(request):
     while True:
         token = generate_otp()
-        if WiFiQR.objects.filter(token=token).count() == 0:
+        if WiFiToken.objects.filter(token=token).exists() is False:
             break
     server_ip = captive_portal.IP_ADDRESS
     qr_code = pyqrcode.create('http://{}:{}/login/authenticate/?token={}'.format(server_ip, captive_portal.PORT, token))
-    max_connected = request.POST['max_connected']
-    wifi_user = create_wifi_user(token, qr_code, max_connected)
+    max_connected = int(request.POST['max_connected'])
+    hour = int(request.POST['hour'])
+    minute = int(request.POST['minute'])
+    wifi_user = create_wifi_user(token, qr_code, max_connected, hour, minute)
     context = {
         'qr': wifi_user.qr_code.url,
         'web_url': captive_portal.IP_ADDRESS+":"+str(captive_portal.PORT)+"/login/",
@@ -92,4 +102,6 @@ def create_qr(request):
         'expiration_time': wifi_user.expiration_time,
     }
     request.session['max_connected'] = max_connected
+    request.session['hour'] = hour
+    request.session['minute'] = minute
     return render(request, 'captive_portal/create_qr.html', context)

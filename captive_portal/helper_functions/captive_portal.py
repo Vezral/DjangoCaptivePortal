@@ -1,15 +1,15 @@
 import subprocess
 import netifaces as netif
 import ipaddress
-from captive_portal.models import RemoveWiFiQRScheduler
-from captive_portal.tasks import remove_remote_user, remove_all_wifi_qr
+from captive_portal.models import RemoveWiFiTokenScheduler
+from captive_portal.tasks import remove_all_wifi_qr
 from datetime import datetime, timedelta
 from pytz import timezone
 from django.conf import settings
 
 # These variables are used as settings
-PORT = 8000  # the port in which the captive portal web server listens
-HTTPS_PORT = 8001  # the port in which the captive portal web server listens
+PORT = 8000  # the port in which the HTTP captive portal web server listens
+HTTPS_PORT = 8001  # the port in which the HTTPS captive portal web server listens
 IFACE = "wlan0"  # the interface that captive portal protects
 wifi_interface = netif.ifaddresses(IFACE)[netif.AF_INET][0]
 IP_ADDRESS = wifi_interface['addr']  # the ip address of the captive portal (it can be the IP of IFACE)
@@ -20,18 +20,17 @@ NET_ID_WITH_PREFIX = str(ipaddress.IPv4Interface(IP_ADDRESS + '/' + NETMASK).net
 def captive_portal_init():
     kl_timezone = timezone(settings.TIME_ZONE)
     date_to_delete_wifi_qr = datetime.now(kl_timezone).replace(hour=0, minute=0, second=0, microsecond=0)+timedelta(days=1)
-    wifi_qr_scheduler_is_exist = RemoveWiFiQRScheduler.objects.filter(pk=1).exists()
-    if wifi_qr_scheduler_is_exist:
-        wifi_qr_scheduler = RemoveWiFiQRScheduler.objects.get(pk=1)
-        if wifi_qr_scheduler.scheduled_time.time() < date_to_delete_wifi_qr.time():
+    if RemoveWiFiTokenScheduler.objects.filter(pk=1).exists():
+        wifi_token_scheduler = RemoveWiFiTokenScheduler.objects.get(pk=1)
+        if wifi_token_scheduler.scheduled_time.time() < date_to_delete_wifi_qr.time():
             remove_all_wifi_qr()
             remove_all_wifi_qr.apply_async(eta=date_to_delete_wifi_qr)
-            wifi_qr_scheduler.scheduled_time = date_to_delete_wifi_qr
-            wifi_qr_scheduler.save()
+            wifi_token_scheduler.scheduled_time = date_to_delete_wifi_qr
+            wifi_token_scheduler.save()
     else:
         remove_all_wifi_qr.apply_async(eta=date_to_delete_wifi_qr)
-        wifi_qr_scheduler = RemoveWiFiQRScheduler.objects.create(scheduled_time=date_to_delete_wifi_qr)
-        wifi_qr_scheduler.save()
+        wifi_token_scheduler = RemoveWiFiTokenScheduler.objects.create(scheduled_time=date_to_delete_wifi_qr)
+        wifi_token_scheduler.save()
 
     print("***************************************************************************")
     print("* Based on nikosfet's captive portal script, available at                  *")
