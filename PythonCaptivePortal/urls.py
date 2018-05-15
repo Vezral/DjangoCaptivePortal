@@ -18,7 +18,9 @@ from django.urls import include, path, re_path
 from django.conf import settings
 from django.views.generic.base import RedirectView
 from django.conf.urls.static import static
-from captive_portal.helper_functions.captive_portal import captive_portal_init
+from django.db import utils
+from captive_portal.helper_functions.captive_portal import captive_portal_init, check_remove_wifi_token_scheduler, check_allocated_bandwidth
+from captive_portal.models import RemoveWiFiTokenScheduler
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,4 +34,11 @@ urlpatterns += [
     re_path(r'^.*$', RedirectView.as_view(url='/login/'), name='index'),
 ]
 
-captive_portal_init()
+try:
+    RemoveWiFiTokenScheduler.objects.filter(pk=1).exists()  # just checking if sqlite database has been created yet
+    captive_portal_init()
+    check_remove_wifi_token_scheduler()
+    check_allocated_bandwidth()
+# if database doesn't exist (i.e. during makemigrations after deleting sqlite)
+except utils.OperationalError:
+    pass

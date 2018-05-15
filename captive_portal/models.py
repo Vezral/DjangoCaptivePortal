@@ -24,5 +24,10 @@ class WifiTokenAssociatedIPAddress(models.Model):
     ip_address = models.CharField(max_length=100, unique=True)
 
 
+class AllocatedBandwidth(models.Model):
+    download_speed_in_Kbps = models.FloatField(default=0)
+    upload_speed_in_Kbps = models.FloatField(default=0)
+
+
 class RemoveWiFiTokenScheduler(models.Model):
     scheduled_time = models.DateTimeField()

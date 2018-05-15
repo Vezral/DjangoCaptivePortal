@@ -8,10 +8,13 @@
     <div style="text-align: center">
         {% if qr and token and expiration_time %}
         <img src="{{ qr }}"><br>
-        <label>WiFi login token: {{ token }}</label><br>
+        <label>Wi-Fi login token: {{ token }}</label><br>
         <label>Expiration time: {{ expiration_time|date:'j/n/Y h:i A' }}</label><br>
         <label>Login page: {{ web_url }}</label><br>
         <label>Maximum connected device: {{ request.session.max_connected }}{% if request.session.max_connected == 0 %} (Unlimited){% endif %}</label>
+        {% endif %}
+        {% if error %}
+            <label style="color: red">{{ error }}</label>
         {% endif %}
         <form action="{% url 'captive_portal:create_qr' %}" method="post">
             {% csrf_token %}
@@ -24,16 +27,16 @@
                     <option value="{{ forloop.counter0 }}">{{ forloop.counter0|stringformat:"02d" }}</option>
                     {% endif %}
                 {% endfor %}
-            </select>:
+            </select> hours
             <select name="minute">
-                {% for i in "x"|rjust:"59" %}
-                    {% if forloop.counter == request.session.minute|add:"0" %}
-                    <option value="{{ forloop.counter }}" selected>{{ forloop.counter|stringformat:"02d" }}</option>
+                {% for i in "x"|rjust:"60" %}
+                    {% if forloop.counter0 == request.session.minute|add:"0" %}
+                    <option value="{{ forloop.counter0 }}" selected>{{ forloop.counter0|stringformat:"02d" }}</option>
                     {% else %}
-                    <option value="{{ forloop.counter }}">{{ forloop.counter|stringformat:"02d" }}</option>
+                    <option value="{{ forloop.counter0 }}">{{ forloop.counter0|stringformat:"02d" }}</option>
                     {% endif %}
                 {% endfor %}
-            </select><br>
+            </select> minutes<br>
             <label>Maximum connected devices: </label>
             <select name="max_connected">
                 {% for i in "x"|rjust:"10" %}
@@ -45,6 +48,18 @@
                 {% endfor %}
             </select><br>
             <input type="submit" value="CreateQR">
+        </form><br>
+        <form action="{% url 'captive_portal:limit_download_speed' %}" method="post">
+            {% csrf_token %}
+            <label>Currently allocated download speed: {{ current_download_speed|floatformat:1 }} KBps {% if current_download_speed == 0 %} (Unlimited){% endif %}<br>
+            <input name="download_speed" type="number" min="0" step="0.1" required="required">(in KBps)</label><br>
+            <input type="submit" value="Change Download Speed">
+        </form><br>
+        <form action="{% url 'captive_portal:limit_upload_speed' %}" method="post">
+            {% csrf_token %}
+            <label>Currently allocated upload speed: {{ current_upload_speed|floatformat:1 }} KBps {% if current_upload_speed == 0 %} (Unlimited){% endif %}<br>
+            <input name="upload_speed" type="number" min="0" step="0.1" required="required">(in KBps)</label><br>
+            <input type="submit" value="Change Upload Speed">
         </form>
     </div>
 </body>

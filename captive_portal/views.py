@@ -7,7 +7,7 @@ from captive_portal.helper_functions import captive_portal
 from pytz import timezone
 from django.conf import settings
 from .tasks import remove_wifi_qr, add_remote_user
-from .models import WiFiToken, WifiTokenAssociatedIPAddress
+from .models import WiFiToken, AllocatedBandwidth, WifiTokenAssociatedIPAddress
 import pyqrcode
 import pyotp
 import os
@@ -25,7 +25,12 @@ class LoginPage(TemplateView):
 class CreateQRPage(TemplateView):
 
     def get(self, request, *args, **kwargs):
-        return render(request, 'captive_portal/create_qr.html')
+        allocated_bandwidth = AllocatedBandwidth.objects.get(pk=1)
+        context = {
+            'current_download_speed': allocated_bandwidth.download_speed_in_Kbps / 8,
+            'current_upload_speed': allocated_bandwidth.upload_speed_in_Kbps / 8,
+        }
+        return render(request, 'captive_portal/create_qr.html', context)
 
 
 def authenticate(request):
@@ -41,16 +46,19 @@ def authenticate(request):
         if wifi_token.max_connected == 0 or wifi_token.current_connected < wifi_token.max_connected:
             user_ip = get_client_ip(request)[0]
             # check if IP already authenticated
-            if wifi_token.wifitokenassociatedipaddress_set.filter(ip_address=user_ip).exists() is False:
+            if WifiTokenAssociatedIPAddress.objects.filter(ip_address=user_ip).exists() is False:
                 wifi_token.current_connected += 1
-                associated_ip = WifiTokenAssociatedIPAddress(token=wifi_token, ip_address=user_ip)
                 wifi_token.save()
-                associated_ip.save()
                 if 'error' in request.session:
                     del request.session['error']
                 kl_timezone = timezone(settings.TIME_ZONE)
                 delay = datetime.now(kl_timezone)+timedelta(seconds=2)
                 add_remote_user.apply_async(args=[user_ip, wifi_token.id], eta=delay)
+                add_remote_user.apply_async(args=['1.1.1.1', wifi_token.id], eta=delay)
+                add_remote_user.apply_async(args=['1.1.1.2', wifi_token.id], eta=delay)
+                add_remote_user.apply_async(args=['1.1.1.3', wifi_token.id], eta=delay)
+                add_remote_user.apply_async(args=['1.1.1.4', wifi_token.id], eta=delay)
+                add_remote_user.apply_async(args=['1.1.1.5', wifi_token.id], eta=delay)
                 return redirect('captive_portal:success')
             else:
                 request.session['error'] = 'You are already authenticated!'
@@ -85,23 +93,52 @@ def create_wifi_user(token, qr_code, max_connected, hour, minute):
 
 
 def create_qr(request):
-    while True:
-        token = generate_otp()
-        if WiFiToken.objects.filter(token=token).exists() is False:
-            break
-    server_ip = captive_portal.IP_ADDRESS
-    qr_code = pyqrcode.create('http://{}:{}/login/authenticate/?token={}'.format(server_ip, captive_portal.PORT, token))
     max_connected = int(request.POST['max_connected'])
     hour = int(request.POST['hour'])
     minute = int(request.POST['minute'])
-    wifi_user = create_wifi_user(token, qr_code, max_connected, hour, minute)
-    context = {
-        'qr': wifi_user.qr_code.url,
-        'web_url': captive_portal.IP_ADDRESS+":"+str(captive_portal.PORT)+"/login/",
-        'token': wifi_user.token,
-        'expiration_time': wifi_user.expiration_time,
-    }
     request.session['max_connected'] = max_connected
     request.session['hour'] = hour
     request.session['minute'] = minute
-    return render(request, 'captive_portal/create_qr.html', context)
+    allocated_bandwidth = AllocatedBandwidth.objects.get(pk=1)
+    if hour == 0 and minute == 0:
+        context = {
+            'error': "00 hours 00 minutes is invalid!",
+            'current_download_speed': allocated_bandwidth.download_speed_in_Kbps / 8,
+            'current_upload_speed': allocated_bandwidth.upload_speed_in_Kbps / 8,
+        }
+        return render(request, 'captive_portal/create_qr.html', context)
+    else:
+        while True:
+            token = generate_otp()
+            if WiFiToken.objects.filter(token=token).exists() is False:
+                break
+        server_ip = captive_portal.IP_ADDRESS
+        qr_code = pyqrcode.create('http://{}:{}/login/authenticate/?token={}'.format(server_ip, captive_portal.PORT, token))
+        wifi_user = create_wifi_user(token, qr_code, max_connected, hour, minute)
+        context = {
+            'qr': wifi_user.qr_code.url,
+            'web_url': captive_portal.IP_ADDRESS+":"+str(captive_portal.PORT)+"/login/",
+            'token': wifi_user.token,
+            'expiration_time': wifi_user.expiration_time,
+            'current_download_speed': allocated_bandwidth.download_speed_in_Kbps / 8,
+            'current_upload_speed': allocated_bandwidth.upload_speed_in_Kbps / 8,
+        }
+        return render(request, 'captive_portal/create_qr.html', context)
+
+
+def set_download_speed(request):
+    download_speed_in_Kbps = float(request.POST['download_speed']) * 8
+    captive_portal.limit_download_speed(download_speed_in_Kbps)
+    allocated_bandwidth = AllocatedBandwidth.objects.get(pk=1)
+    allocated_bandwidth.download_speed_in_Kbps = download_speed_in_Kbps
+    allocated_bandwidth.save()
+    return redirect('captive_portal:create_qr_page')
+
+
+def set_upload_speed(request):
+    upload_speed_in_Kbps = float(request.POST['upload_speed']) * 8
+    captive_portal.limit_upload_speed(upload_speed_in_Kbps)
+    allocated_bandwidth = AllocatedBandwidth.objects.get(pk=1)
+    allocated_bandwidth.upload_speed_in_Kbps = upload_speed_in_Kbps
+    allocated_bandwidth.save()
+    return redirect('captive_portal:create_qr_page')
