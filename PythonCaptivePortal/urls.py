@@ -19,7 +19,7 @@ from django.conf import settings
 from django.views.generic.base import RedirectView
 from django.conf.urls.static import static
 from django.db import utils
-from captive_portal.helper_functions.captive_portal import captive_portal_init, check_remove_wifi_token_scheduler, check_allocated_bandwidth
+from captive_portal.helper_functions.captive_portal import captive_portal_init, check_remove_wifi_token_scheduler, check_allocated_bandwidth, remove_all_wifi_qr
 from captive_portal.models import RemoveWiFiTokenScheduler
 
 urlpatterns = [

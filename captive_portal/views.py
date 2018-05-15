@@ -54,11 +54,6 @@ def authenticate(request):
                 kl_timezone = timezone(settings.TIME_ZONE)
                 delay = datetime.now(kl_timezone)+timedelta(seconds=2)
                 add_remote_user.apply_async(args=[user_ip, wifi_token.id], eta=delay)
-                add_remote_user.apply_async(args=['1.1.1.1', wifi_token.id], eta=delay)
-                add_remote_user.apply_async(args=['1.1.1.2', wifi_token.id], eta=delay)
-                add_remote_user.apply_async(args=['1.1.1.3', wifi_token.id], eta=delay)
-                add_remote_user.apply_async(args=['1.1.1.4', wifi_token.id], eta=delay)
-                add_remote_user.apply_async(args=['1.1.1.5', wifi_token.id], eta=delay)
                 return redirect('captive_portal:success')
             else:
                 request.session['error'] = 'You are already authenticated!'
