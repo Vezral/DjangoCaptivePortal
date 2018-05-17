@@ -44,6 +44,8 @@ def captive_portal_init():
         subprocess.call(["iptables", "-A", "FORWARD", "-i", IFACE, "-j", "REJECT"])
         print("Redirecting HTTP traffic to captive portal")
         subprocess.call(["iptables", "-t", "nat", "-I", "PREROUTING", "-i", IFACE, "-p", "tcp", "--dport", "80", "-j", "DNAT", "--to-destination", IP_ADDRESS+":"+str(PORT)])
+        print("Starting celery ..")
+        subprocess.Popen(["celery", "-A", "PythonCaptivePortal", "worker", "-l", "info"])
 
 
 # check if remove_all_wifi_qr scheduler has been set; if not then set it
