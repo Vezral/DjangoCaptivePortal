@@ -22,7 +22,7 @@ def add_remote_user(remote_IP, wifi_token_id):
         if download_speed != 0:
             subprocess.call(["tcset", "--device", captive_portal.IFACE, "--rate", str(download_speed)+"Kbps", "--direction", "outgoing", "--network", remote_IP, "--add"])
         if upload_speed != 0:
-            subprocess.call(["tcset", "--device", captive_portal.IFACE, "--rate", str(upload_speed)+"Kbps", "--direction", "ingoing", "--src-network", remote_IP, "--add"])
+            subprocess.call(["tcset", "--device", captive_portal.IFACE, "--rate", str(upload_speed)+"Kbps", "--direction", "incoming", "--src-network", remote_IP, "--add"])
         # add remote user IP to sqlite database
         wifi_token = WiFiToken.objects.get(pk=wifi_token_id)
         remote_user = WifiTokenAssociatedIPAddress(token=wifi_token, ip_address=remote_IP)
