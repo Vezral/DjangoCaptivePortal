@@ -36,9 +36,9 @@ urlpatterns += [
 
 try:
     RemoveWiFiTokenScheduler.objects.filter(pk=1).exists()  # just checking if sqlite database has been created yet
-    captive_portal_init()
     check_remove_wifi_token_scheduler()
     check_allocated_bandwidth()
+    captive_portal_init()
 # if database doesn't exist (i.e. during makemigrations after deleting sqlite)
 except utils.OperationalError:
     pass
