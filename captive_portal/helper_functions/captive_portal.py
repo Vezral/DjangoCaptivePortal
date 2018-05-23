@@ -24,7 +24,7 @@ def captive_portal_init():
     current_iptable_output = subprocess.check_output(["iptables", "-S"]).decode('utf-8')
     if compare_string not in current_iptable_output:
         print("***************************************************************************")
-        print("* Based on nikosfet's captive portal script, available at                  *")
+        print("* Based on nikosft's captive portal script, available at                  *")
         print("* https://github.com/nikosft/captive-portal/blob/master/captive_portal.py *")
         print("***************************************************************************")
         print("Updating iptables")
